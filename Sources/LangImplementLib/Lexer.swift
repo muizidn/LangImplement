@@ -1,7 +1,7 @@
 import Foundation
 
 public class Lexer {
-    let tokens: [Token]
+    public let tokens: [Token]
     private static func getNextPrefix(code: String) -> (regex: String, prefix: String)? {
         var prefix: String? = nil
         let keyValue = Token.generators
