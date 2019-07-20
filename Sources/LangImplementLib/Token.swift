@@ -18,7 +18,7 @@ public enum Token {
     
     static var generators: [String: Generator] {
         return [
-            Operator.regex: { .op(Operator(rawValue: $0)!) },
+            #"\+|\-|\*|\/"#: { .op(Operator(rawValue: $0)!) },
             #"\-?[0-9]*\.[0-9]+|[0-9]+"#: { .number(Float($0)!) },
             #"\("#: { _ in .parensOpen },
             #"\)"#: { _ in .parensClose },
