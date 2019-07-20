@@ -98,12 +98,33 @@ public class Parser {
     }
 }
 
-public protocol Node: CustomStringConvertible {}
-extension Float: Node {}
+public protocol Node: CustomStringConvertible {
+    func interpret() throws -> Float
+}
+extension Float: Node {
+    public func interpret() throws -> Float {
+        return self
+    }
+}
 struct InfixOperation: Node {
     let op: Operator
     let lhs: Node
     let rhs: Node
+    
+    func interpret() throws -> Float {
+        let left = try lhs.interpret()
+        let right = try rhs.interpret()
+        switch op {
+        case .plus:
+            return left + right
+        case .minus:
+            return left - right
+        case .multiply:
+            return left * right
+        case .dividedBy:
+            return left / right
+        }
+    }
     
     var description: String {
         return "\(lhs) \(op) \(rhs)"
