@@ -14,6 +14,7 @@ public enum Token {
     case number(Float)
     case parensOpen
     case parensClose
+    case identifier(String)
     
     static var generators: [String: Generator] {
         return [
@@ -21,6 +22,7 @@ public enum Token {
             #"\-?[0-9]*\.[0-9]+|[0-9]+"#: { .number(Float($0)!) },
             #"\("#: { _ in .parensOpen },
             #"\)"#: { _ in .parensClose },
+            #"[a-zA-Z_$][a-zA-Z_$0-9]*"#: { .identifier($0) }
         ]
     }
 }

@@ -13,6 +13,8 @@ public class Parser {
         case expected(String)
         case expectedNumber
         case expectedOperator
+        case expectedIdentifier
+        case notDefined(String)
         
     }
     let tokens: [Token]
@@ -53,12 +55,21 @@ public class Parser {
         return expressionNode
     }
     
+    func parseIdentifier() throws -> Node {
+        guard case let .identifier(id) = popToken() else {
+            throw Error.expectedIdentifier
+        }
+        return id
+    }
+    
     func parseValue() throws -> Node {
         switch peek() {
         case .number:
             return try parseNumber()
         case .parensOpen:
             return try parseParens()
+        case .identifier:
+            return try parseIdentifier()
         default:
             throw Error.expected("<Expression>")
         }
@@ -104,6 +115,19 @@ public protocol Node: CustomStringConvertible {
 extension Float: Node {
     public func interpret() throws -> Float {
         return self
+    }
+}
+
+var identifiers: [String: Float] = [
+    "PI": Float.pi
+]
+
+extension String: Node {
+    public func interpret() throws -> Float {
+        guard let value = identifiers[self] else {
+            throw Parser.Error.notDefined(self)
+        }
+        return value
     }
 }
 struct InfixOperation: Node {
