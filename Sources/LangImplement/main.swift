@@ -1,7 +1,12 @@
 let tool = LangImplementCLI(
     arguments: [
         "",
-        "10 * PI"
+"""
+var n = 10
+var x = 19
+var c = n + x
+c + 10
+"""
     ]
 )
 do {

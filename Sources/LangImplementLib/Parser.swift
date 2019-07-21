@@ -37,29 +37,36 @@ public class Parser {
         return token
     }
     
-    func parseNumber() throws -> Node {
-        guard case let .number(value) = popToken() else {
-            throw Error.expectedNumber
+    func peekPrecedence() throws -> Int {
+        guard canPop, case let .op(op) = peek() else {
+            return -1
         }
-        return value
+        return op.precedence
     }
     
-    func parseParens() throws -> Node {
-        guard case .parensOpen = popToken() else {
-            throw Error.expected("(")
+    public func parse() throws -> Node {
+        var nodes = [Node]()
+        while canPop {
+            let token = peek()
+            switch token {
+            case .var:
+                let decl = try parseVariableDeclaration()
+                nodes.append(decl)
+            default:
+                let expr = try parseExpression()
+                nodes.append(expr)
+            }
         }
-        let expressionNode = try parse()
-        guard case .parensClose = popToken() else {
-            throw Error.expected(")")
-        }
-        return expressionNode
+        return BlockDeclaration(nodes: nodes)
     }
+}
+
+extension Parser {
     
-    func parseIdentifier() throws -> Node {
-        guard case let .identifier(id) = popToken() else {
-            throw Error.expectedIdentifier
-        }
-        return id
+    func parseExpression() throws -> Node {
+        guard canPop else { throw Error.requireExpression }
+        let node = try parseValue()
+        return try parseInfixOperation(node: node)
     }
     
     func parseValue() throws -> Node {
@@ -75,11 +82,29 @@ public class Parser {
         }
     }
     
-    func peekPrecedence() throws -> Int {
-        guard canPop, case let .op(op) = peek() else {
-            return -1
+    func parseNumber() throws -> Node {
+        guard case let .number(value) = popToken() else {
+            throw Error.expectedNumber
         }
-        return op.precedence
+        return value
+    }
+    
+    func parseParens() throws -> Node {
+        guard case .parensOpen = popToken() else {
+            throw Error.expected("(")
+        }
+        let expressionNode = try parseExpression()
+        guard case .parensClose = popToken() else {
+            throw Error.expected(")")
+        }
+        return expressionNode
+    }
+    
+    func parseIdentifier() throws -> Node {
+        guard case let .identifier(id) = popToken() else {
+            throw Error.expectedIdentifier
+        }
+        return id
     }
     
     func parseInfixOperation(node: Node, nodePrecedence: Int = 0) throws -> Node {
@@ -102,55 +127,21 @@ public class Parser {
         return leftNode
     }
     
-    public func parse() throws -> Node {
-        guard canPop else { throw Error.requireExpression }
-        let node = try parseValue()
-        return try parseInfixOperation(node: node)
-    }
-}
-
-public protocol Node: CustomStringConvertible {
-    func interpret() throws -> Float
-}
-extension Float: Node {
-    public func interpret() throws -> Float {
-        return self
-    }
-}
-
-var identifiers: [String: Float] = [
-    "PI": Float.pi
-]
-
-extension String: Node {
-    public func interpret() throws -> Float {
-        guard let value = identifiers[self] else {
-            throw Parser.Error.notDefined(self)
+    func parseVariableDeclaration() throws -> Node {
+        guard case .var = popToken() else {
+            throw Error.expected("'var' keyword")
         }
-        return value
-    }
-}
-struct InfixOperation: Node {
-    let op: Operator
-    let lhs: Node
-    let rhs: Node
-    
-    func interpret() throws -> Float {
-        let left = try lhs.interpret()
-        let right = try rhs.interpret()
-        switch op {
-        case .plus:
-            return left + right
-        case .minus:
-            return left - right
-        case .multiply:
-            return left * right
-        case .dividedBy:
-            return left / right
+        
+        guard case let .identifier(name) = popToken() else {
+            throw Error.expectedIdentifier
         }
-    }
-    
-    var description: String {
-        return "\(lhs) \(op) \(rhs)"
+        
+        guard case .equals = popToken() else {
+            throw Error.expected("'=' token")
+        }
+        
+        let expression = try parseExpression()
+        return VariableDeclaration(name: name, value: expression)
     }
 }
+
