@@ -16,9 +16,7 @@ extension Float: Node {
     }
 }
 
-var identifiers: [String: Float] = [
-    "PI": Float.pi
-]
+var identifiers: [String: Float] = [:]
 
 extension String: Node {
     public func interpret() throws -> Float {
