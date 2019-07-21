@@ -16,33 +16,11 @@ extension Float: Node {
     }
 }
 
-var identifiers: [String: Float] = [:]
-
 extension String: Node {
     public func interpret() throws -> Float {
-        guard let value = identifiers[self] else {
+        guard case let .variable(value)? = SymbolTable.identifiers[self] else {
             throw Parser.Error.notDefined(self)
         }
         return value
-    }
-}
-struct InfixOperation: Node {
-    let op: Operator
-    let lhs: Node
-    let rhs: Node
-    
-    func interpret() throws -> Float {
-        let left = try lhs.interpret()
-        let right = try rhs.interpret()
-        switch op {
-        case .plus:
-            return left + right
-        case .minus:
-            return left - right
-        case .multiply:
-            return left * right
-        case .dividedBy:
-            return left / right
-        }
     }
 }

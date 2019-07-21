@@ -1,0 +1,10 @@
+var wolf = 2 + 2
+
+function sum(x,y) {
+  x + y
+}
+
+var wolfc = wolf + 20
+sum(wolfc, wolfc)
+
+

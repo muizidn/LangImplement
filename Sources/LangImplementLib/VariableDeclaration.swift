@@ -12,7 +12,11 @@ struct VariableDeclaration: Node {
     let value: Node
     func interpret() throws -> Float {
         let val = try value.interpret()
-        identifiers[name] = val
+        if SymbolTable.identifiers[name] == nil {
+            SymbolTable.identifiers[name] = .variable(val)
+        } else {
+            throw Parser.Error.alreadyDefined(identifier: name)
+        }
         return val
     }
 }
